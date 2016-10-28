@@ -1,0 +1,17 @@
+#!/bin/bash
+
+#get the warning to go away 
+#export LANGUAGE=en_US.UTF-8
+#export LC_ALL=en_US.UTF-8
+
+
+
+
+Trinity --seqType fq --single ~/Mutual/TestMutual/0Hour_ATCACG_L002_R1_001.fastq  --SS_lib_type F --max_memory 16G --CPU 2 --output ~/TrinihMer/trinityrnaseq-2.2.0/trinity-output --no_bowtie
+
+
+
+
+
+
+
