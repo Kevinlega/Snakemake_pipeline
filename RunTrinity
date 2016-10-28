@@ -7,7 +7,7 @@
 
 
 
-Trinity --seqType fq --single ~/Mutual/TestMutual/0Hour_ATCACG_L002_R1_001.fastq  --SS_lib_type F --max_memory 16G --CPU 2 --output ~/TrinihMer/trinityrnaseq-2.2.0/trinity-output --no_bowtie
+Trinity --seqType fq --single ~/Mutual/TestMutual/0Hour_ATCACG_L002_R1_001.fastq  --SS_lib_type F --max_memory 16G --CPU 2 --output ~/TrinihMer/trinityrnaseq-2.2.0/trinity-output
 
 
 
