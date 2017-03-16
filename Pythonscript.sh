@@ -16,6 +16,6 @@
 #!/bin/bash
 read -p "output directory path " output
 
-for filename in ./Files/*; do
+for filename in ./Files/* do
   python parser.py --file $filename --output $output
 done

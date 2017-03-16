@@ -31,15 +31,20 @@ filename = args.file
 
 output = args.output
 
-def decide_ext(filenm):
-    if filename.endswith('.fasta'):
-        contig_dict, i = get_contig_dict(filenm)
-    elif filename.endswith('.fastq'):
-        contig_dict, i = get_contig_dict2(filenm)
+def decide_ext(filenme):
+    if filenme.endswith('.fasta'):
+        # contig_dict, i = get_contig_dict(filenme)
+        i = get_contig_dict(filenme)
+        filepath = os.path.join(output,'GBFA.txt')
+    elif filenme.endswith('.fastq'):
+        filepath = os.path.join(output,'GBFQ.txt')
+        # contig_dict, i = get_contig_dict2(filenme)
+        i = get_contig_dict2(filenme)
     else:
         sys.exit("File extension not match, only fasta or fastq")
         exit()
-    return contig_dict,i
+    # return contig_dict,i
+    return i
 
 
 
@@ -49,21 +54,24 @@ def get_contig_dict(fasta_file):
         with open(fasta_file, 'rU') as handle:
                 for record in SeqIO.parse(handle, 'fasta'):
                     k = len(record.seq)
-                    contig_dict[record.id] = k
+                    # contig_dict[record.id] = k
                     i += k
-        return contig_dict , i
+        # return contig_dict , i
+        return i
 def get_contig_dict2(fastq_file):
     contig_dict = {}
     i = 0
     with open(fastq_file,'rU') as handle:
         for record in SeqIO.parse(handle,'fastq'):
             k = len(record.seq)
-            contig_dict[record.id] = k
+            # contig_dict[record.id] = k
             i +=k
-        return contig_dict, i
+        # return contig_dict, i
+        return i
 
 
-arbol1, i = decide_ext(filename) #check file extension
+# arbol1, i = decide_ext(filename) #check file extension
+i = decide_ext(filename) #check file extension
 
 # dicoutput = os.path.join(output, filename+'dic.txt')
 # GBneeded = os.path.join(output, filename+'GB.txt')
@@ -72,21 +80,10 @@ arbol1, i = decide_ext(filename) #check file extension
 
 filename = os.path.basename(filename)
 
-
-
-# filepath = os.path.join(output,filename)  needed in original
-
-
-filepath = os.path.join(output,'GB.txt')
-
 if not os.path.exists(output):
     os.makedirs(output)
 
 gb = i /(1000000 * 76)
-
-
-
-
 
 if os.path.exists(filepath) == False:
 
@@ -105,25 +102,3 @@ else:
     f  = open(filepath, 'w+')
     f.write(line)
     f.close()
-
-
-
-
-# original
-
-# GB = open(filepath+'GB.txt', "w+")
-# # gb = i / (1000000 * 25) for when 25 bases kmers
-# gb = i /(1000000 * 76)
-# # gb = round(gb,0)
-# GB.write(str(gb)+"\n")
-
-
-
-# Make dictionary
-# x= open(filepath+"dic.txt", "w+")
-# # x= open(dicoutput, "w+")
-# x.write("-------------------------------------------------\n")
-# for contid, length in arbol1.items():
-#     x.write("| \t "+ str(contid)+" \t| \t " + str(length) + "\t| \n")
-#     x.write("-------------------------------------------------\n")
-# GB = open(GBneeded, "w+")

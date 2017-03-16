@@ -12,14 +12,32 @@
 # Then utilize the command: "make" to run the desired operation.               #
 # ###############################################################################
 
+# Trinity needs fasta and fastq files in different runs, so we will need to
+#  separate them
+
 
 #!/bin/bash
 
-for file in ~/Files/*
+
+# fastq files
+for file in ~/Files/*.fastq
 do
-  echo $file >> Files.txt
+  echo $file >> fq.txt | sed '$s/ $/\n/'
 done
 
-# rm allFiles.txt
-cat Files.txt | tr "\n" "," > allFiles.txt
-rm Files.txt
+
+cat fq.txt | tr "\n" "," > allFQ.txt
+cat allFQ.txt | head -c -1 >> allFQ.txt
+
+rm fq.txt
+
+
+# fasta files
+for file in ~/Files/*.fasta
+do
+  echo $file >> fa.txt | sed '$s/ $/\n/'
+done
+
+cat fa.txt | tr "\n" "," > allFA.txt
+cat allFA.txt | head -c -1 > allFA.txt
+rm fa.txt
