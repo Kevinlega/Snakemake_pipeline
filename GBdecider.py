@@ -21,7 +21,7 @@ import argparse
 from Bio import SeqIO
 
 
-parser = argparse.ArgumentParser(description = "reads two .fasta files")
+parser = argparse.ArgumentParser(description = "reads one .fasta files")
 parser.add_argument("--file", help = ".fasta or fastq file 1", required = True)
 parser.add_argument("--output", help = ".output directory", required = True)
 
