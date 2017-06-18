@@ -29,3 +29,8 @@ Wechangethenamelater
   + Trinity
   + Comparison
   + clean
+
+
+
+
+#Snakefile is the latest with the whole goal
