@@ -1,86 +1,66 @@
-# ###############################################################################
-#                                                                              #
-# Copyright 2017 Megaprobe-Lab                                                 #
-#                                                                              #
-# This is software created by the megaprobe lab under the GPL3 license.        #
-#                                                                              #
-# This program reproduces the pipeline for de novo rna sequencing research. To #
-# run the program, just move into the folder that contains the makefile and    #
-# make sure the sources folder contains the source files for the compilation   #
-# of Trinity, khmer, Trimmomatic and ________.                                 #
-#                                                                              #
-# Then utilize the command: "make" to run the desired operation.               #
-# ###############################################################################
+SAMPLE = config['Sample']
+CONVERT = config['converttofast']
 
+rule all:
 
-
-# Trimmomatic: """/path"""
-# SAMPLE = ['Sample1', 'Sample2']
-
-rule converttofasta:
-    input: '{sample}.fastq'
-    output: '{sample}.fasta'
-    run:
-        import os
-        import sys
-        import argparse
-        # from Bio import SeqIO
-        # from Bio.SeqIO.QualityIO import FastqGeneralIterator
-
-        filename = input
-
-        newfilename = os.path.basename(filename)
-        newfilename = newfilename[:-6]
-        newfilename += ".fasta"
-
-        filepath = os.path.join(output,newfilename)
-
-        with open(filename, "rU") as input_handle:
-            with open(filepath, "w+") as output_handle:
-                sequences = SeqIO.parse(input_handle, "fastq")
-                count = SeqIO.write(sequences, output_handle, "fasta")
-
-rule trim:
-    input: '{sample}.fasta'
-
-    output: '{sample}.trimmed.fasta'
-
-    shell: """ java -jar trimmomatic-0.35.jar SE -phred33
-    {input} {output} ILLUMINACLIP:TruSeq3-SE:2:30:10
-    LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36 """
-
-rule GBdecider:
-    input: '{sample}.fasta'
-    output: 'GB.txt'
+rule C2Fast:
+    input:   conv = expand('Files/{sample}', sample=CONVERT))
+    output: 'AllFastas/'
     run:
         import os
         import sys
         import argparse
         from Bio import SeqIO
+        from Bio.SeqIO.QualityIO import FastqGeneralIterator
+
+        filename = str(conv)
+        print(filename)
+        if filename[-5:] == 'fastq':
+            newfilename = os.path.basename(filename)
+            newfilename = newfilename[:-6]
+            newfilename += ".fasta"
+
+            print(newfilename)
+            x = str(output)
+            filepath = os.path.join(x,newfilename)
+
+            print(filepath)
 
 
-        parser = argparse.ArgumentParser(description = "reads one .fasta files")
-        parser.add_argument("--file", help = ".fasta or fastq file 1", required = True)
-        parser.add_argument("--output", help = ".output directory", required = True)
+            with open(filename, "rU") as input_handle:
+                with open(filepath, "w+") as output_handle:
+                    sequences = SeqIO.parse(input_handle, "fastq")
+                    count = SeqIO.write(sequences, output_handle, "fasta")
+        else:
+            os.system("mv {filename} AllFastas/")
 
-        args = parser.parse_args()
+rule trim:
+    input: expand('AllFastas/{sample}.fasta', sample=SAMPLE)
 
-        filename = args.file
+    output: 'Trimmed/{sample}.trim.fasta'
 
-        output = args.output
+    shell: """ java -jar trimmomatic-0.35.jar SE -phred33
+    {input} {output} ILLUMINACLIP:TruSeq3-SE:2:30:10
+    LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36 """
 
-        def decide_ext(filenme):
-            if filenme.endswith('.fasta'):
-                # contig_dict, i = get_contig_dict(filenme)
-                i = get_contig_dict(filenme)
-                filepath = os.path.join(output,'GBFA.txt')
-            else:
-                sys.exit("File extension not match, only fasta or fastq")
-                exit()
-            # return contig_dict,i
-            return i
+rule Diginorm:
+    input: expand('Trimmed/{sample}.trim.fasta', sample=SAMPLE)
+    output: 'Normalized/{sample}.diginorm.fasta'
+    shell:
+          "normalize-by-median.py -N 4 -x {input} {output}"
+          "filter-abund.py -V normC20k20.kh *.keep {input} {output}"
 
 
+
+rule GBdecider:
+    input: expand('Normalized/{sample}.diginorm.fasta', sample=SAMPLE)
+    output: 'GB.txt'
+    run:
+
+        import os
+        import sys
+        import argparse
+        from Bio import SeqIO
 
         def get_contig_dict(fasta_file):
                 contig_dict = {}
@@ -92,25 +72,12 @@ rule GBdecider:
                             i += k
                 # return contig_dict , i
                 return i
-        def get_contig_dict2(fastq_file):
-            contig_dict = {}
-            i = 0
-            with open(fastq_file,'rU') as handle:
-                for record in SeqIO.parse(handle,'fastq'):
-                    k = len(record.seq)
-                    # contig_dict[record.id] = k
-                    i +=k
-                # return contig_dict, i
-                return i
 
+        filename = str(input)
 
-        # arbol1, i = decide_ext(filename) #check file extension
-        i = decide_ext(filename) #check file extension
+        filepath = str(output)
 
-        # dicoutput = os.path.join(output, filename+'dic.txt')
-        # GBneeded = os.path.join(output, filename+'GB.txt')
-
-
+        i = get_contig_dict(filenme)
 
         filename = os.path.basename(filename)
 
@@ -137,147 +104,131 @@ rule GBdecider:
             f.write(line)
             f.close()
 
-
-ule Diginorm:
-    input: '{sample}.trimmed.fasta'
-    output: '{sample}.diginorm.fasta'
-    shell: """
-        for filename in ./Files/* do
-          normalize-by-median.py -N 4 -x 15e9
-        done
-
-        for filename in ./Files/* do
-          filter-abund.py -V normC20k20.kh *.keep
-        done
-        """
-
-
-
 rule concatenate:
-    input: '{sample}.fasta'
+    input: expand('Normalized/{sample}.diginorm.fasta', sample=SAMPLE)
     output: 'concatenate.txt'
     shell:      # need to change it to add file one at a time
-    # """
-    #     for file in ~/Files/*.fasta
-    #     do
-    #       echo $file >> fa.txt | sed '$s/ $/\n/'
-    #     done
-    #
-    #     cat fa.txt | tr "\n" "," > allFA.txt
-    #     cat allFA.txt | head -c -1 > allFA.txt
-    #     rm fa.txt
-    #     """
+    """
+        for file in ~/Files/*.fasta
+        do
+          echo $file >> fa.txt | sed '$s/ $/\n/'
+        done
+
+        cat fa.txt | tr "\n" "," > allFA.txt
+        cat allFA.txt | head -c -1 > allFA.txt
+        rm fa.txt
+        """
 
 
 
 rule Trinity:
     input: needed='GB.txt', allfiles='concatenate.txt'
-    output: 'Trinity.fasta'
+    output: 'Trinity/Trinity.fasta'
     shell: """  Trinity --seqType fa --single  {inputself.allfiles}
     --SS_lib_type F --CPU {input.needed} --output {output} """
 
 
-
+#
 # after all comparison has done we do sourmash but all above must be in a for loop
 # but must run at least twice to have 2 Trinity.fasta to compare
-
-
-rule sourmash:
-    input: file1='Trinity.fasta', file2='Trinity2.fasta'
-    output: #compare sequences???
-    run:
-        import time
-        import sys
-
-        try:
-
-        	import screed
-        	import sourmash_lib
-
-        except ImportError:
-        	print("screed and sourmash need to be installed and in the path")
-        	sys.exit(0)
-
-
-
-        def usage():
-        	print("Usage:\npython %s <file A> <file B>  "%(sys.argv[0]))
-        	sys.exit(0)
-
-        def compare_sequences(s1=None , s2=None):
-        	#if imported
-        	if s1 and s2:
-        		seqfile1 = screed.open(s2)
-        		seqfile2 = screed.open(s1)
-        	#if ran standalone
-        	elif (sys.argv[1] and sys.argv[2]):
-        		seqfile1 = screed.open(sys.argv[1])
-        		seqfile2 = screed.open(sys.argv[2])
-        	#in case of some sort of input error
-        	else:
-        		usage()
-
-        	#lists to hold all the sequences in the files
-        	f1 , f2 = [] , []
-
-
-        	t1 = time.time()
-
-        	#load the file into the list
-        	for read in seqfile1:
-        		E = sourmash_lib.Estimators(n=20, ksize=3)
-        		E.add_sequence(read.sequence)
-        		f1.append((read.name , read.sequence , E))
-
-        	t2 = time.time()
-
-        	print("Loaded file %s in %s seconds"%(sys.argv[1] , t2 - t1))
-
-
-        	t1 = time.time()
-
-        	#load the other file into the list
-        	for read in seqfile2:
-        		E = sourmash_lib.Estimators(n=20, ksize=3)
-        		E.add_sequence(read.sequence)
-        		f2.append((read.name , read.sequence , E))
-
-        	t2 = time.time()
-
-        	print("Loaded file %s in %s seconds"%(sys.argv[2] , t2 - t1))
-
-        	#output file
-        	out = open("%s-in-%s.txt"%(sys.argv[1] , sys.argv[2]) , "w")
-
-        	t1 = time.time()
-
-        	#for every sequence in file A
-        	for seq1 in f1:
-
-        		#set start asuming nothing matches
-        		max = (None,None,0)
-
-        		#for every sequence in file B
-        		for seq2 in f2:
-
-        			#get the jaccard index
-        			j = seq2[2].jaccard(seq1[2])
-
-        			#if the index is larger than the previous maximum
-        			if j > max[2]:
-
-        				#it becomes the new max secuence
-        				max = (seq1[0] , seq2[0] , j )
-
-        		#write out the maximum sequence in the output
-        		out.write("\n%s\n%s\ncorrespondence:%s\n"%(max[0] , max[1] , max[2]))
-
-
-        	t2 = time.time()
-
-
-        	print("Finished comparing all the sequences in %s seconds"%(t2 - t1))
-        	print("output:%s-in-%.txts"%(sys.argv[1] , sys.argv[2]))
-
-        if (__name__ == "__main__"):
-        	compare_sequences()
+#
+#
+# rule sourmash:
+#     input: file1='Trinity.fasta', file2='Trinity.fasta'
+#     output: #compare sequences???
+#     run:
+#         import time
+#         import sys
+#
+#         try:
+#
+#         	import screed
+#         	import sourmash_lib
+#
+#         except ImportError:
+#         	print("screed and sourmash need to be installed and in the path")
+#         	sys.exit(0)
+#
+#
+#
+#         def usage():
+#         	print("Usage:\npython %s <file A> <file B>  "%(sys.argv[0]))
+#         	sys.exit(0)
+#
+#         def compare_sequences(s1=None , s2=None):
+#         	#if imported
+#         	if s1 and s2:
+#         		seqfile1 = screed.open(s2)
+#         		seqfile2 = screed.open(s1)
+#         	#if ran standalone
+#         	elif (sys.argv[1] and sys.argv[2]):
+#         		seqfile1 = screed.open(sys.argv[1])
+#         		seqfile2 = screed.open(sys.argv[2])
+#         	#in case of some sort of input error
+#         	else:
+#         		usage()
+#
+#         	#lists to hold all the sequences in the files
+#         	f1 , f2 = [] , []
+#
+#
+#         	t1 = time.time()
+#
+#         	#load the file into the list
+#         	for read in seqfile1:
+#         		E = sourmash_lib.Estimators(n=20, ksize=3)
+#         		E.add_sequence(read.sequence)
+#         		f1.append((read.name , read.sequence , E))
+#
+#         	t2 = time.time()
+#
+#         	print("Loaded file %s in %s seconds"%(sys.argv[1] , t2 - t1))
+#
+#
+#         	t1 = time.time()
+#
+#         	#load the other file into the list
+#         	for read in seqfile2:
+#         		E = sourmash_lib.Estimators(n=20, ksize=3)
+#         		E.add_sequence(read.sequence)
+#         		f2.append((read.name , read.sequence , E))
+#
+#         	t2 = time.time()
+#
+#         	print("Loaded file %s in %s seconds"%(sys.argv[2] , t2 - t1))
+#
+#         	#output file
+#         	out = open("%s-in-%s.txt"%(sys.argv[1] , sys.argv[2]) , "w")
+#
+#         	t1 = time.time()
+#
+#         	#for every sequence in file A
+#         	for seq1 in f1:
+#
+#         		#set start asuming nothing matches
+#         		max = (None,None,0)
+#
+#         		#for every sequence in file B
+#         		for seq2 in f2:
+#
+#         			#get the jaccard index
+#         			j = seq2[2].jaccard(seq1[2])
+#
+#         			#if the index is larger than the previous maximum
+#         			if j > max[2]:
+#
+#         				#it becomes the new max secuence
+#         				max = (seq1[0] , seq2[0] , j )
+#
+#         		#write out the maximum sequence in the output
+#         		out.write("\n%s\n%s\ncorrespondence:%s\n"%(max[0] , max[1] , max[2]))
+#
+#
+#         	t2 = time.time()
+#
+#
+#         	print("Finished comparing all the sequences in %s seconds"%(t2 - t1))
+#         	print("output:%s-in-%.txts"%(sys.argv[1] , sys.argv[2]))
+#
+#         if (__name__ == "__main__"):
+#         	compare_sequences()
