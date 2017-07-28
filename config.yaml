@@ -1,0 +1,25 @@
+# Be sure to have all the / including the last one
+
+
+# One organism = one line
+# for each organism write every file like so:
+# OrganismPATH:
+# - "/home/kevin/first-test/Organism1"
+
+OrganismPATH: #requiered 
+  - "/data/kevin/workarea/pepino/"
+  - "/data/kevin/workarea/labrat/"
+ 
+Workdir: #requiered 
+  - "/data/kevin/workarea/"
+
+TrimmomaticPath: #requiered 
+  - "/home/kevin/ThisSemester/Programs/Trimmomatic-0.36/"
+
+ComparisonList: #requiered if more than one organism
+  - "0 1"
+
+MaxMemory:
+  - ""
+
+
