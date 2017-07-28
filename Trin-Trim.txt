@@ -1,8 +1,0 @@
- The option to run Trimmomatic is:
---trimmomatic
-To give it parameters is: 
---quality_trimming_params  "ILLUMINACLIP:TruSeq3-PE.fa:2:30:10 SLIDINGWINDOW:6:5 LEADING:20 TRAILING:10 MINLEN:30"
-
-
-
-
