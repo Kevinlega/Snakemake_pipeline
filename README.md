@@ -14,7 +14,6 @@
 		# ###############################################################################
  -->
 
-<!-- grep -o 'TRINITY_DN' Trinity_Organism0.fasta-in-Trinity_Organism1.fasta.txt | wc -l -->
 
 # Programs:
 <!-- Note: When creating enviorment use python3 not python2 -->
@@ -61,4 +60,7 @@
 - run like so snakemake
 - or snakemake <rule>
 - for other uses use snakemake -h
+
+## Command to see how many sequences:
+- grep -o 'TRINITY_DN' Trinity_Organism0.fasta-in-Trinity_Organism1.fasta.txt | wc -l 
 

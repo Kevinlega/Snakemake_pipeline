@@ -118,8 +118,8 @@ Workdir = Workdir[0]
 ComparisonList = config["ComparisonList"]
 TrimPath = config['TrimmomaticPath']
 TrimPath = TrimPath[0]
-# MaxMemory = config['MaxMemory']
-# MaxMemory = MaxMemory[0]
+MaxMemory = config['MaxMemory']
+MaxMemory = MaxMemory[0]
 
 
 
@@ -336,8 +336,8 @@ rule GBdecider:
             lines = f.read()
             line = float(lines) 
 
-            # if(line > MaxMemory):
-            #     sys.exit("To process data we need "+str(line)+"GB. Look for a computer with more memory.")
+            if(line > MaxMemory):
+                sys.exit("To process data we need "+str(line)+"GB. Look for a computer with more memory. Error on Organism: "+str(i))
                 
             line = math.ceil(line)
             line = str(line) + "G"
@@ -369,7 +369,7 @@ rule Trinity:
             output_name = out[:-1]
 
             os.system("mv "+output_name+".Trinity.fasta"+ " "+out2)
-            os.system("rm -r "+out)
+            # os.system("rm -r "+out)
         
         if not os.path.isdir(out):
             os.makedirs(out)
@@ -387,7 +387,7 @@ rule sourmash:
             try:
                 compa = e.split()
             except:
-                sys.exit("Nothing to compare in comparion list position: "+str(i+1))
+                sys.exit("Nothing to compare in comparion list position: "+e)
 
             # Get Trinity file for Organisms
             file1 = Workdir + 'Trinity/Trinity_Organism' + str(compa[0]) + '.fasta'
