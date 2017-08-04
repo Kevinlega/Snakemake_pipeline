@@ -37,6 +37,6 @@ ComparisonList: #requiered if more than one organism
   - "1 0"
 
 MaxMemory: #requiered, you shouldn't use all your memory...
-  - "15G"
+  - "15"
 
 
