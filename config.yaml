@@ -34,8 +34,9 @@ TrimmomaticPath: #requiered
 
 ComparisonList: #requiered if more than one organism
   - "0 1"
+  - "1 0"
 
 MaxMemory: #requiered, you shouldn't use all your memory...
-  - ""
+  - "15G"
 
 
