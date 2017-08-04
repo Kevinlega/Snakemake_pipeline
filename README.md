@@ -6,7 +6,7 @@
 		#                                                                              #
 		# This program reproduces the pipeline for de novo rna sequencing research. To #
 		# run the program, just move into the folder that contains the Snakefile and   #
-		# make sure the PATH has addeded Trinity, khmer, screed, Trimmomatic and       #
+		# make sure the PATH has addeded Trinity, khmer, screed and                    #
 		# sourmash. For more explanation on what the program does read technical       #
 		# report or to see usage read the README.md                                    #
 		#                                                                              #
